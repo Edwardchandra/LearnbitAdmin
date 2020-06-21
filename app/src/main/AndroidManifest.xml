@@ -9,10 +9,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".main.home.tab.course.coursedetail.CourseDetailActivity"
-            android:theme="@style/AppTheme.NoActionBar"/>
+        <activity android:name=".main.home.tab.terminate.terminatedetail.TerminateDetailActivity"></activity>
         <activity
-            android:name=".main.home.tab.search.SearchActivity"
+            android:name=".main.home.tab.search.SearchCourseActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".main.home.tab.course.coursedetail.CourseDetailActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".main.home.tab.search.SearchWithdrawActivity"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".main.home.tab.withdraw.withdrawdetail.WithdrawDetailActivity" />
         <activity android:name=".main.profile.editprofile.EditProfileActivity" />

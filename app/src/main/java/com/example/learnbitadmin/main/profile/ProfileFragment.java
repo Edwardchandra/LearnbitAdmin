@@ -4,19 +4,16 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.fragment.app.Fragment;
-
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
 import com.example.learnbitadmin.R;
@@ -24,8 +21,6 @@ import com.example.learnbitadmin.launch.MainActivity;
 import com.example.learnbitadmin.main.profile.changepassword.ChangePasswordActivity;
 import com.example.learnbitadmin.main.profile.editprofile.EditProfileActivity;
 import com.example.learnbitadmin.model.Admins;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -43,9 +38,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
     private FirebaseAuth firebaseAuth;
     private FirebaseUser user;
-
     private FirebaseDatabase firebaseDatabase;
-
     private FirebaseStorage firebaseStorage;
 
     @Override
@@ -73,49 +66,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         return view;
     }
 
-    private void retrieveData(){
-        DatabaseReference databaseReference = firebaseDatabase.getReference("Admins").child(user.getUid());
-
-        databaseReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Admins admins = dataSnapshot.getValue(Admins.class);
-
-                if (admins!=null){
-                    profileName.setText(admins.getName());
-                    profileEmail.setText(admins.getEmail());
-
-                    Log.d("admindata", admins.getName());
-                }else{
-                    Log.d("admindata", "null");
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }
-
-    private void retrieveImage(){
-        StorageReference storageReference = firebaseStorage.getReference("Admins").child(user.getUid()).child("profileImage");
-
-        storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-            @Override
-            public void onSuccess(Uri uri) {
-                if (getActivity()!=null){
-                    Glide.with(getActivity()).load(uri).into(profileImage);
-                }
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(getContext(), "Image not found", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
     private void setupFirebase(){
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseDatabase = FirebaseDatabase.getInstance();
@@ -124,9 +74,43 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         user = firebaseAuth.getCurrentUser();
     }
 
+    private void retrieveData(){
+        DatabaseReference databaseReference = firebaseDatabase.getReference("Admins").child(user.getUid());
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Admins admins = dataSnapshot.getValue(Admins.class);
+
+                if (admins!=null){
+                    profileName.setText(admins.getName());
+                    profileEmail.setText(admins.getEmail());
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+               if (getActivity()!=null){
+                   Toast.makeText(getContext(), getActivity().getString(R.string.retrieve_failed), Toast.LENGTH_SHORT).show();
+               }
+            }
+        });
+    }
+
+    private void retrieveImage(){
+        StorageReference storageReference = firebaseStorage.getReference("Admins").child(user.getUid()).child("profileImage");
+        storageReference.getDownloadUrl().addOnSuccessListener(uri -> {
+            if (getActivity()!=null){
+                Glide.with(getActivity()).load(uri).into(profileImage);
+            }
+        }).addOnFailureListener(e -> {
+            if (getActivity() != null){
+                Toast.makeText(getContext(), getActivity().getString(R.string.retrieve_failed), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void signOut(){
         firebaseAuth.signOut();
-
         Intent intent = new Intent(getContext(), MainActivity.class);
         startActivity(intent);
     }
@@ -159,8 +143,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
             case R.id.reportProblemButton:
                 sendBugReport();
                 break;
-            default:
-                Toast.makeText(getContext(), "nothing happened", Toast.LENGTH_SHORT).show();
         }
     }
 }

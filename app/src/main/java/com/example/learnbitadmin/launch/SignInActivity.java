@@ -40,20 +40,17 @@ public class SignInActivity extends AppCompatActivity {
 
         setupToolbar();
 
-        signInButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(isEmpty(emailET)){
-                    emailET.setError("Email must not be empty");
-                }else if(!isValidEmail(emailET)){
-                    emailET.setError("Email must be in valid format");
-                }else if(isEmpty(passwordET)){
-                    passwordET.setError("Password shouldn't be empty.");
-                }else if(passwordET.getText().toString().length() <= 6){
-                    passwordET.setError("Password must be more than 6 characters");
-                }else{
-                    signIn();
-                }
+        signInButton.setOnClickListener(v -> {
+            if(isEmpty(emailET)){
+                emailET.setError(getString(R.string.email_error));
+            }else if(!isValidEmail(emailET)){
+                emailET.setError(getString(R.string.email_error_format));
+            }else if(isEmpty(passwordET)){
+                passwordET.setError(getString(R.string.password_error));
+            }else if(passwordET.getText().toString().length() < 7){
+                passwordET.setError(getString(R.string.password_error_character));
+            }else{
+                signIn();
             }
         });
     }
@@ -88,15 +85,12 @@ public class SignInActivity extends AppCompatActivity {
         firebaseAuth = FirebaseAuth.getInstance();
 
         firebaseAuth.signInWithEmailAndPassword(emailET.getText().toString(), passwordET.getText().toString())
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()){
-                            FirebaseUser user = firebaseAuth.getCurrentUser();
-                            updateUI(user);
-                        }else{
-                            Toast.makeText(SignInActivity.this, "Sign In Failed", Toast.LENGTH_SHORT).show();
-                        }
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()){
+                        FirebaseUser user = firebaseAuth.getCurrentUser();
+                        updateUI(user);
+                    }else{
+                        Toast.makeText(SignInActivity.this, "Sign In Failed", Toast.LENGTH_SHORT).show();
                     }
                 });
     }

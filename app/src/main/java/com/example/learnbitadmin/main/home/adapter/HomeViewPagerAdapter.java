@@ -1,6 +1,7 @@
 package com.example.learnbitadmin.main.home.adapter;
 
 import com.example.learnbitadmin.main.home.tab.course.CourseFragment;
+import com.example.learnbitadmin.main.home.tab.terminate.TerminateFragment;
 import com.example.learnbitadmin.main.home.tab.withdraw.WithdrawFragment;
 
 import androidx.annotation.NonNull;
@@ -23,6 +24,8 @@ public class HomeViewPagerAdapter extends FragmentPagerAdapter {
                 return new CourseFragment();
             case 1:
                 return new WithdrawFragment();
+            case 2:
+                return new TerminateFragment();
             default:
                 return new CourseFragment();
         }
@@ -35,6 +38,8 @@ public class HomeViewPagerAdapter extends FragmentPagerAdapter {
                 return "Courses";
             case 1:
                 return "Withdraws";
+            case 2:
+                return "Terminate Request";
             default:
                 return "Courses";
         }
@@ -42,7 +47,7 @@ public class HomeViewPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public int getCount() {
-        return 2;
+        return 3;
     }
 
 }

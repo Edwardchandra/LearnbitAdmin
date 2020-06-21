@@ -38,8 +38,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Intent registerIntent = new Intent(getApplicationContext(), RegisterActivity.class);
                 startActivity(registerIntent);
                 break;
-            default:
-                Toast.makeText(this, "nothing happened", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -62,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        //do nothing
+
+        finishAffinity();
     }
 }

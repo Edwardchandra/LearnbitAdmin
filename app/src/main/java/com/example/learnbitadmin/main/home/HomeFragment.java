@@ -3,22 +3,18 @@ package com.example.learnbitadmin.main.home;
 import android.content.Intent;
 import android.os.Bundle;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.widget.SearchView;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
 
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Toast;
 
 import com.example.learnbitadmin.R;
 import com.example.learnbitadmin.main.home.adapter.HomeViewPagerAdapter;
-import com.example.learnbitadmin.main.home.tab.search.SearchActivity;
+import com.example.learnbitadmin.main.home.tab.search.SearchCourseActivity;
+import com.example.learnbitadmin.main.home.tab.search.SearchWithdrawActivity;
 import com.google.android.material.tabs.TabLayout;
 
 public class HomeFragment extends Fragment implements View.OnClickListener {
@@ -72,30 +68,22 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
 
     private void setupSearchView(){
         if (pagePosition == 0){
-            searchButton.setText("Search Courses");
+            searchButton.setText(getString(R.string.search_course));
         }else if (pagePosition == 1){
-            searchButton.setText("Search Withdraws");
+            searchButton.setText(getString(R.string.search_withdraw));
         }
-    }
-
-    private void searchItem(){
-        if (pagePosition == 0){
-
-        }else if (pagePosition == 1){
-
-        }
-
     }
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
-            case R.id.searchButton:
-                Intent intent = new Intent(getContext(), SearchActivity.class);
+        if (v.getId() == R.id.searchButton) {
+            if (searchButton.getText().equals(getString(R.string.search_course))){
+                Intent intent = new Intent(getContext(), SearchCourseActivity.class);
                 startActivity(intent);
-                break;
-            default:
-                Toast.makeText(getContext(), "nothing happened", Toast.LENGTH_SHORT).show();
+            }else if (searchButton.getText().equals(getString(R.string.search_withdraw))){
+                Intent intent = new Intent(getContext(), SearchWithdrawActivity.class);
+                startActivity(intent);
+            }
         }
     }
 }

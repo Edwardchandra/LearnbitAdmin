@@ -3,4 +3,58 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="retrieve_failed">Failed to retrieve data</string>
+    <string name="upload_success">Upload successful</string>
+    <string name="upload_failed">Upload failed</string>
+
+    <string name="name_error">Name must not be empty</string>
+    <string name="name_error_character">Name must be more than 2 characters</string>
+    <string name="email_error">Email must not be empty</string>
+    <string name="email_error_format">Email must be in valid format</string>
+    <string name="password_error">Password must not be empty</string>
+    <string name="password_error_character">Password must be more than 6 characters</string>
+    <string name="save_failed">Failed to save data</string>
+    <string name="password_not_match">Password didn\'t match your account password</string>
+    <string name="no_connection">Please check your internet connection</string>
+
+    <string name="divider">%1$s - %2$s</string>
+
+    <string name="schedule">Every %1$s at %2$s</string>
+    <string name="rating">%1$.1f Average Ratings</string>
+    <string name="course_count">Teach in %1$d Course(s)</string>
+
+    <string name="course_accepted">%1$s has been accepted by the admin.</string>
+    <string name="course_accepted_message">Your course named %1$s has been accepted by the admin. Have fun teaching with our platform. Please always be kind when teaching. For any further questions regarding your course, please contact us at our email "learnbitapp@gmail.com". Thank you.</string>
+    <string name="course_declined">%1$s has been declined by the admin.</string>
+    <string name="course_declined_message">Your course named %1$s has been declined by the admin. The reason behind it was because of "%2$s". For any further questions regarding your course, please contact us at our email "learnbitapp@gmail.com". Thank you.</string>
+
+    <string name="withdraw_processing">Your withdraw with amount of IDR %1$s is being processed by the finance team.</string>
+    <string name="withdraw_processing_message">Your withdraw with amount of IDR %1$s is being processed by the finance team. Please wait for 2 – 3 days for the process to finish. For any further questions regarding your withdraw, please contact us at our email "learnbitapp@gmail.com". Thank you.</string>
+    <string name="withdraw_success">Your withdraw with amount of IDR %1$s has been successfully transferred to your bank account.</string>
+    <string name="withdraw_success_message">Your withdraw with amount of IDR %1$s has been successfully transferred to your bank account. Please check your bank account to see the details. For any further questions regarding your withdraw, please contact us at our email "learnbitapp@gmail.com". Thank you.</string>
+    <string name="withdraw_failed">Your withdraw with amount of IDR %1$s has failed.</string>
+    <string name="withdraw_failed_message">Your withdraw with amount of IDR %1$s has failed. The reason behind it was because of "%2$s". For any further questions regarding your withdraw, please contact us at our email "learnbitapp@gmail.com". Thank you.</string>
+
+    <string name="new_withdraw">New withdraw request by %1$s with amount of IDR %2$d"</string>
+
+    <string name="student_terminated">Your student named %1$s has terminated from your course.</string>
+    <string name="student_terminated_message">Your student named %1$s has terminated from your course because of \"%2$s\".</string>
+    <string name="student_terminate_cancel">Your student named %1$s has cancelled the termination request.</string>
+    <string name="student_terminate_cancel_message">Your student named %1$s has cancelled the termination request by contacting admin. Please always follow our terms and always be kind when teaching.</string>
+
+    <string name="search_course">Search Courses</string>
+    <string name="search_withdraw">Search Withdraws</string>
+    <string name="search_terminate">Search Terminate Requests</string>
+
+    <string name="terminate_title">%1$s has requested to terminate course named \"%2$s\"</string>
+    <string name="students">%1$d Student(s)</string>
+
+    <string name="pending">Pending</string>
+    <string name="processing">Processing</string>
+    <string name="accepted">Accepted</string>
+    <string name="success">Success</string>
+    <string name="failed">Failed</string>
+    <string name="declined">Declined</string>
+
 </resources>

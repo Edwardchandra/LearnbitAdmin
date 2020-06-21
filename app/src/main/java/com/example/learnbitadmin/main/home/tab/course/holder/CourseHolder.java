@@ -43,41 +43,22 @@ public class CourseHolder extends RecyclerView.ViewHolder implements View.OnClic
         context = itemView.getContext();
     }
 
-    public void setCourse(String key){
+    public void setCourse(String key, Course course){
         this.key = key;
 
-        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-        DatabaseReference databaseReference = firebaseDatabase.getReference("Course").child(key);
-        Query query = databaseReference.orderByChild("timestamp").limitToLast(20);
+        if (course!=null){
+            courseName.setText(course.getCourseName());
+            courseStatus.setText(course.getCourseAcceptance());
+            courseTime.setText(course.getCreateTime());
 
-        query.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot ds : dataSnapshot.getChildren()){
-                    Course course = ds.getValue(Course.class);
-
-                    if (course!=null){
-                        courseName.setText(course.getCourseName());
-                        courseStatus.setText(course.getCourseAcceptance());
-                        courseTime.setText(course.getCreateTime());
-
-                        Glide.with(context).load(course.getCourseImageURL()).into(courseImageView);
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
+            Glide.with(context).load(course.getCourseImageURL()).into(courseImageView);
+        }
     }
 
     @Override
     public void onClick(View v) {
         Intent intent = new Intent(context, CourseDetailActivity.class);
         intent.putExtra("key", key);
-        intent.putExtra("courseName", courseName.getText().toString());
         context.startActivity(intent);
     }
 }

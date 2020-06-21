@@ -9,9 +9,10 @@ public class Withdraw {
     private int amount;
     private String userUid;
     private String dateTime;
-    private String message;
+    private String title;
+    private String key;
 
-    public Withdraw(String bankName, int bankNumber, String destinationName, String isSent, int amount, String userUid, String dateTime, String message) {
+    public Withdraw(String bankName, int bankNumber, String destinationName, String isSent, int amount, String userUid, String dateTime) {
         this.bankName = bankName;
         this.bankNumber = bankNumber;
         this.destinationName = destinationName;
@@ -19,7 +20,18 @@ public class Withdraw {
         this.amount = amount;
         this.userUid = userUid;
         this.dateTime = dateTime;
-        this.message = message;
+    }
+
+    public Withdraw(String title, String key, String bankName, int bankNumber, String destinationName, String isSent, int amount, String userUid, String dateTime) {
+        this.title = title;
+        this.key = key;
+        this.bankName = bankName;
+        this.bankNumber = bankNumber;
+        this.destinationName = destinationName;
+        this.isSent = isSent;
+        this.amount = amount;
+        this.userUid = userUid;
+        this.dateTime = dateTime;
     }
 
     public Withdraw() {
@@ -81,11 +93,19 @@ public class Withdraw {
         this.dateTime = dateTime;
     }
 
-    public String getMessage() {
-        return message;
+    public String getTitle() {
+        return title;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 }

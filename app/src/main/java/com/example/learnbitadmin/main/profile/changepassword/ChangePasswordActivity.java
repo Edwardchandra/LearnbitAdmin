@@ -1,20 +1,17 @@
 package com.example.learnbitadmin.main.profile.changepassword;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.learnbitadmin.R;
 import com.example.learnbitadmin.main.HomeActivity;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
@@ -23,7 +20,6 @@ import com.google.firebase.auth.FirebaseUser;
 public class ChangePasswordActivity extends AppCompatActivity {
 
     private EditText oldPassword, repeatOldPassword, newPassword;
-    private Button saveButton;
 
     private FirebaseUser user;
 
@@ -35,14 +31,9 @@ public class ChangePasswordActivity extends AppCompatActivity {
         oldPassword = findViewById(R.id.changePassword_OldPassword);
         repeatOldPassword = findViewById(R.id.changePassword_OldPasswordRepeat);
         newPassword = findViewById(R.id.changePassword_NewPassword);
-        saveButton = findViewById(R.id.changePassword_SaveButton);
+        Button saveButton = findViewById(R.id.changePassword_SaveButton);
 
-        saveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                checkEditText();
-            }
-        });
+        saveButton.setOnClickListener(v -> checkEditText());
 
         setupToolbar();
         setupFirebaseAuth();
@@ -62,30 +53,25 @@ public class ChangePasswordActivity extends AppCompatActivity {
     }
 
     private void changePassword(){
-        final String email = user.getEmail();
-        final String password = oldPassword.getText().toString();
+        String email = user.getEmail();
+        String password = oldPassword.getText().toString();
 
-        AuthCredential authCredential = EmailAuthProvider.getCredential(email, password);
-
-        user.reauthenticate(authCredential).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
+        if (email!=null){
+            AuthCredential authCredential = EmailAuthProvider.getCredential(email, password);
+            user.reauthenticate(authCredential).addOnCompleteListener(task -> {
                 if (task.isSuccessful()){
-                    user.updatePassword(newPassword.getText().toString()).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()){
-                                Toast.makeText(ChangePasswordActivity.this, "Password changed succesfully", Toast.LENGTH_SHORT).show();
-                            }else{
-                                Toast.makeText(ChangePasswordActivity.this, "Please check your internet connection", Toast.LENGTH_SHORT).show();
-                            }
+                    user.updatePassword(newPassword.getText().toString()).addOnCompleteListener(task1 -> {
+                        if (task1.isSuccessful()){
+                            toast(getString(R.string.upload_success));
+                        }else{
+                            toast(getString(R.string.no_connection));
                         }
                     });
                 }else{
-                    Toast.makeText(ChangePasswordActivity.this, "Your entered password didn't match your account password", Toast.LENGTH_SHORT).show();
+                    toast(getString(R.string.password_not_match));
                 }
-            }
-        });
+            });
+        }
     }
 
     private void checkEditText(){
@@ -112,5 +98,9 @@ public class ChangePasswordActivity extends AppCompatActivity {
             finish();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void toast(String message){
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }

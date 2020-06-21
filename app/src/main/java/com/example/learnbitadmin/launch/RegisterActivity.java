@@ -31,9 +31,6 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
     private EditText nameET;
     private EditText emailET;
     private EditText passwordET;
-
-
-    private String emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+";
     private FirebaseAuth firebaseAuth;
     private FirebaseUser user;
 
@@ -56,17 +53,17 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
     private void checkEditText(){
         if(isEmpty(nameET)){
-            nameET.setError("Name must not be empty");
-        }else if(nameET.getText().toString().length() <= 3){
-            nameET.setError("Name must be more than 3 characters");
+            nameET.setError(getString(R.string.name_error));
+        }else if(nameET.getText().toString().length() < 3){
+            nameET.setError(getString(R.string.name_error_character));
         }else if(isEmpty(emailET)){
-            emailET.setError("Email must not be empty");
+            emailET.setError(getString(R.string.email_error));
         }else if(!isValidEmail(emailET)){
-            emailET.setError("Email must be in valid format");
+            emailET.setError(getString(R.string.email_error_format));
         }else if(isEmpty(passwordET)){
-            passwordET.setError("Password shouldn't be empty.");
-        }else if(passwordET.getText().toString().length() <= 6){
-            passwordET.setError("Password must be more than 6 characters");
+            passwordET.setError(getString(R.string.password_error));
+        }else if(passwordET.getText().toString().length() < 7){
+            passwordET.setError(getString(R.string.password_error_character));
         }else{
             createAccount();
         }
@@ -106,24 +103,19 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
     public void onClick(View v) {
         if (v.getId() == R.id.register_RegisterButton) {
             checkEditText();
-        } else {
-            Toast.makeText(this, "nothing happened", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void createAccount(){
         firebaseAuth.createUserWithEmailAndPassword(emailET.getText().toString(), passwordET.getText().toString())
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()){
-                            user = firebaseAuth.getCurrentUser();
-                            updateUI(user);
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()){
+                        user = firebaseAuth.getCurrentUser();
+                        updateUI(user);
 
-                            saveData();
-                        }else{
-                            Toast.makeText(RegisterActivity.this, "Register Failed. Account already exist.", Toast.LENGTH_SHORT).show();
-                        }
+                        saveData();
+                    }else{
+                        Toast.makeText(RegisterActivity.this, "Register Failed. Account already exist.", Toast.LENGTH_SHORT).show();
                     }
                 });
     }

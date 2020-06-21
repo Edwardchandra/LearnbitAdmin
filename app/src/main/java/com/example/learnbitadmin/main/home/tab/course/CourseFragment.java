@@ -61,8 +61,7 @@ public class CourseFragment extends Fragment {
             @Override
             protected void onBindViewHolder(@NonNull CourseHolder holder, int position, @NonNull Course model) {
                 DatabaseReference databaseReference = firebaseRecyclerAdapter.getRef(position);
-
-                holder.setCourse(databaseReference.getKey());
+                holder.setCourse(databaseReference.getKey(), model);
             }
 
             @NonNull
@@ -82,8 +81,7 @@ public class CourseFragment extends Fragment {
     }
 
     private void retrieveData(){
-        Query query = firebaseDatabase.getReference("Course");
-
+        Query query = firebaseDatabase.getReference("Course").orderByChild("timestamp");
         firebaseRecyclerOptions = new FirebaseRecyclerOptions.Builder<Course>().setQuery(query, Course.class).build();
     }
 

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.learnbitadmin.R;
 import com.example.learnbitadmin.main.home.tab.withdraw.model.Withdraw;
@@ -20,7 +21,6 @@ import androidx.recyclerview.widget.RecyclerView;
 public class WithdrawHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
     private TextView title, status, dateTime;
-    private FirebaseDatabase firebaseDatabase;
     private String key;
 
     public WithdrawHolder(@NonNull View itemView) {
@@ -37,28 +37,26 @@ public class WithdrawHolder extends RecyclerView.ViewHolder implements View.OnCl
     public void setWithdraw(final Withdraw withdraw, final String key){
         this.key = key;
 
-        firebaseDatabase = FirebaseDatabase.getInstance();
+        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
         DatabaseReference databaseReference = firebaseDatabase.getReference("Users").child(withdraw.getUserUid()).child("name");
 
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 String name = dataSnapshot.getValue(String.class);
-
                 if (name!=null){
-                    title.setText("New withdraw request by " + name + " with amount of IDR " + withdraw.getAmount());
+                    title.setText(itemView.getContext().getString(R.string.new_withdraw, name, withdraw.getAmount()));
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                Toast.makeText(itemView.getContext(), itemView.getContext().getString(R.string.retrieve_failed), Toast.LENGTH_SHORT).show();
             }
         });
 
         status.setText(withdraw.getSent());
         dateTime.setText(withdraw.getDateTime());
-
     }
 
     @Override

@@ -16,21 +16,26 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.learnbitadmin.R;
 import com.example.learnbitadmin.main.home.tab.withdraw.model.Withdraw;
+import com.example.learnbitadmin.main.model.Notification;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
 public class WithdrawDetailActivity extends AppCompatActivity implements View.OnClickListener {
 
     private LinearLayout statusIndicator;
     private TextView status, name, amount, bankName, bankNumber, bankHolder, dateTime;
     private ConstraintLayout buttonLayout;
-    private Button processButton, acceptButton, declineButton;
+    private Button processButton;
 
     private FirebaseDatabase firebaseDatabase;
 
@@ -38,6 +43,8 @@ public class WithdrawDetailActivity extends AppCompatActivity implements View.On
     private String userUID;
 
     private Long balance;
+
+    private String date, timestamp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,13 +63,14 @@ public class WithdrawDetailActivity extends AppCompatActivity implements View.On
         dateTime = findViewById(R.id.withdrawDateTime);
         buttonLayout = findViewById(R.id.buttonLayout);
         processButton = findViewById(R.id.processButton);
-        acceptButton = findViewById(R.id.successButton);
-        declineButton = findViewById(R.id.declineButton);
+        Button acceptButton = findViewById(R.id.successButton);
+        Button declineButton = findViewById(R.id.declineButton);
 
         processButton.setOnClickListener(this);
         acceptButton.setOnClickListener(this);
         declineButton.setOnClickListener(this);
 
+        getCurrentDateTime();
         setupToolbar();
         retrieveData();
     }
@@ -80,12 +88,12 @@ public class WithdrawDetailActivity extends AppCompatActivity implements View.On
                     if (withdraw!=null){
                         if (withdraw.getSent().equals("pending")){
                             statusIndicator.setBackground(getDrawable(R.drawable.pending_status_indicator));
-                            status.setText("Pending");
+                            status.setText(getString(R.string.pending));
                             buttonLayout.setVisibility(View.INVISIBLE);
                             processButton.setVisibility(View.VISIBLE);
                         }else if (withdraw.getSent().equals("processing")){
                             statusIndicator.setBackground(getDrawable(R.drawable.process_status_indicator));
-                            status.setText("Processing");
+                            status.setText(getString(R.string.processing));
                             buttonLayout.setVisibility(View.VISIBLE);
                             processButton.setVisibility(View.INVISIBLE);
                         }else{
@@ -94,10 +102,10 @@ public class WithdrawDetailActivity extends AppCompatActivity implements View.On
 
                             if (withdraw.getSent().equals("success")){
                                 statusIndicator.setBackground(getDrawable(R.drawable.done_status_indicator));
-                                status.setText("Success");
+                                status.setText(getString(R.string.success));
                             }else if (withdraw.getSent().equals("failed")){
                                 statusIndicator.setBackground(getDrawable(R.drawable.decline_status_indicator));
-                                status.setText("Failed");
+                                status.setText(getString(R.string.failed));
                             }
                         }
 
@@ -113,7 +121,7 @@ public class WithdrawDetailActivity extends AppCompatActivity implements View.On
 
                             @Override
                             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                                Toast.makeText(WithdrawDetailActivity.this, getString(R.string.retrieve_failed), Toast.LENGTH_SHORT).show();
                             }
                         });
 
@@ -121,15 +129,12 @@ public class WithdrawDetailActivity extends AppCompatActivity implements View.On
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                 Long value = dataSnapshot.getValue(Long.class);
-
-                                if (value!=null){
-                                    balance = value;
-                                }
+                                if (value!=null){ balance = value; }
                             }
 
                             @Override
                             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                                Toast.makeText(WithdrawDetailActivity.this, getString(R.string.retrieve_failed), Toast.LENGTH_SHORT).show();
                             }
                         });
 
@@ -144,7 +149,7 @@ public class WithdrawDetailActivity extends AppCompatActivity implements View.On
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                    Toast.makeText(WithdrawDetailActivity.this, getString(R.string.retrieve_failed), Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -158,9 +163,11 @@ public class WithdrawDetailActivity extends AppCompatActivity implements View.On
         }
     }
 
-    private void saveData(String value, String message){
+    private void saveData(String value, String title, String message){
+        firebaseDatabase.getReference("Notification").child(userUID).push()
+                .setValue(new Notification(title, message, "teacher", timestamp, date));
+
         firebaseDatabase.getReference("Withdraw").child(key).child("sent").setValue(value);
-        firebaseDatabase.getReference("Withdraw").child(key).child("message").setValue(message);
     }
 
     @Override
@@ -175,10 +182,10 @@ public class WithdrawDetailActivity extends AppCompatActivity implements View.On
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.processButton:
-                saveData("processing", "Dear " + name.getText().toString() + ", your withdraw request is being processed by our team, please wait for 2-3 days for the process to finish.");
+                saveData("processing", getString(R.string.withdraw_processing, amount.getText().toString()), getString(R.string.withdraw_processing_message, amount.getText().toString()));
                 break;
             case R.id.successButton:
-                saveData("success", "Dear " + name.getText().toString() + ", your withdraw request has been fulfilled and transferred to your bank account.");
+                saveData("success", getString(R.string.withdraw_success, amount.getText().toString()), getString(R.string.withdraw_success_message, amount.getText().toString()));
                 break;
             case R.id.declineButton:
                 setAlert();
@@ -188,7 +195,7 @@ public class WithdrawDetailActivity extends AppCompatActivity implements View.On
 
     private void setAlert(){
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setMessage("Please specify why the withdrawal process failed");
+        alert.setMessage("Please specify why the withdraw process failed");
 
         final EditText editText = new EditText(getApplicationContext());
 
@@ -201,25 +208,25 @@ public class WithdrawDetailActivity extends AppCompatActivity implements View.On
 
         alert.setView(layout);
 
-        alert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                saveData("failed", "Dear " + name.getText().toString() + ", unfortunately we cannot process your withdraw request right now. " + editText.getText().toString());
-                returnBalance();
-            }
-        }).setNegativeButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-
-            }
-        });
+        alert.setPositiveButton("Yes", (dialog, which) -> {
+            saveData("failed", getString(R.string.withdraw_failed, amount.getText().toString()), getString(R.string.withdraw_failed_message, amount.getText().toString(), editText.getText().toString()));
+            returnBalance();
+        }).setNegativeButton("No", (dialog, which) -> {});
 
         alert.show();
     }
 
     private void returnBalance(){
         Long total = balance + Long.parseLong(amount.getText().toString());
-
         firebaseDatabase.getReference("Users").child(userUID).child("teacher").child("balance").setValue(total);
+    }
+
+    private void getCurrentDateTime(){
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d MMM yyyy HH:mm", Locale.ENGLISH);
+
+        date = simpleDateFormat.format(new java.util.Date());
+
+        long timestampLong = System.currentTimeMillis()/1000;
+        timestamp = Long.toString(timestampLong);
     }
 }

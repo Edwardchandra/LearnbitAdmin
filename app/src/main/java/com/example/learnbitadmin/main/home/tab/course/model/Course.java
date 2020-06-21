@@ -8,7 +8,7 @@ public class Course {
     private String courseSummary;
     private long coursePrice;
     private String courseAcceptance;
-    private int courseStudent;
+    private HashMap<String, String> courseStudent;
     private String courseCategory;
     private String courseSubcategory;
     private String courseImageURL;
@@ -21,8 +21,10 @@ public class Course {
     private String createTime;
     private String timestamp;
     private String message;
+    private String teacherUid;
+    private String courseKey;
 
-    public Course(String courseName, String courseSummary, long coursePrice, String courseAcceptance, int courseStudent, String courseCategory, String courseSubcategory, String courseImageURL, String createTime, String timestamp) {
+    public Course(String courseName, String courseSummary, long coursePrice, String courseAcceptance, HashMap<String, String> courseStudent, String courseCategory, String courseSubcategory, String courseImageURL, String createTime, String timestamp, String teacherUid) {
         this.courseName = courseName;
         this.courseSummary = courseSummary;
         this.coursePrice = coursePrice;
@@ -33,6 +35,15 @@ public class Course {
         this.courseImageURL = courseImageURL;
         this.createTime = createTime;
         this.timestamp = timestamp;
+        this.teacherUid = teacherUid;
+    }
+
+    public Course(String courseName, String courseAcceptance, String courseImageURL, String createTime, String courseKey) {
+        this.courseName = courseName;
+        this.courseAcceptance = courseAcceptance;
+        this.courseImageURL = courseImageURL;
+        this.createTime = createTime;
+        this.courseKey = courseKey;
     }
 
     public Course() {}
@@ -69,11 +80,11 @@ public class Course {
         this.courseAcceptance = courseAcceptance;
     }
 
-    public int getCourseStudent() {
+    public HashMap<String, String> getCourseStudent() {
         return courseStudent;
     }
 
-    public void setCourseStudent(int courseStudent) {
+    public void setCourseStudent(HashMap<String, String> courseStudent) {
         this.courseStudent = courseStudent;
     }
 
@@ -172,4 +183,21 @@ public class Course {
     public void setMessage(String message) {
         this.message = message;
     }
+
+    public String getTeacherUid() {
+        return teacherUid;
+    }
+
+    public void setTeacherUid(String teacherUid) {
+        this.teacherUid = teacherUid;
+    }
+
+    public String getCourseKey() {
+        return courseKey;
+    }
+
+    public void setCourseKey(String courseKey) {
+        this.courseKey = courseKey;
+    }
 }
+

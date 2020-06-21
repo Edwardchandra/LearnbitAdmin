@@ -1,23 +1,7 @@
 package com.example.learnbitadmin.main.home.tab.course.coursedetail;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager.widget.ViewPager;
-
-import android.content.DialogInterface;
-import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -27,6 +11,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.Glide;
 import com.example.learnbitadmin.R;
 import com.example.learnbitadmin.main.home.tab.course.coursedetail.adapter.BenefitAdapter;
@@ -34,23 +26,13 @@ import com.example.learnbitadmin.main.home.tab.course.coursedetail.adapter.Requi
 import com.example.learnbitadmin.main.home.tab.course.coursedetail.adapter.SectionAdapter;
 import com.example.learnbitadmin.main.home.tab.course.model.Course;
 import com.example.learnbitadmin.main.home.tab.course.model.Section;
-import com.example.learnbitadmin.main.home.tab.course.model.User;
-import com.example.learnbitadmin.main.home.tab.course.model.teacher.Teacher;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.material.tabs.TabLayout;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.example.learnbitadmin.main.model.Notification;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -67,16 +49,14 @@ public class CourseDetailActivity extends AppCompatActivity implements View.OnCl
     private ImageView courseDetailImageView, teacherImageView;
     private TextView courseNameET, courseCategoryET, teacherName, teacherCourseCount, teacherRatings, courseSummary, courseScheduleDate, courseScheduleTime, courseStatusET;
     private RecyclerView benefitRecyclerView, requirementRecyclerView, curriculumRecyclerView;
-    private Button acceptButton, declineButton;
     private ConstraintLayout optionsButtonLayout, statusLayout;
 
-    private FirebaseAuth firebaseAuth;
-    private FirebaseUser user;
     private FirebaseDatabase firebaseDatabase;
     private DatabaseReference databaseReference;
-    private Query query;
 
-    private Course course = new Course();
+    private BenefitAdapter benefitAdapter;
+    private RequirementAdapter requirementAdapter;
+    private SectionAdapter sectionAdapter;
 
     private ArrayList<String> timeArrayList = new ArrayList<>();
     private ArrayList<String> scheduleArrayList = new ArrayList<>();
@@ -84,7 +64,10 @@ public class CourseDetailActivity extends AppCompatActivity implements View.OnCl
     private ArrayList<String> requirementArrayList = new ArrayList<>();
     private ArrayList<Section> sectionArrayList = new ArrayList<>();
 
-    private String key, courseName, courseStatus;
+    private String teacherUid;
+    private String courseStatus;
+    private String dateTime;
+    private String timestamp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,209 +93,177 @@ public class CourseDetailActivity extends AppCompatActivity implements View.OnCl
         teacherCourseCount = findViewById(R.id.teacherCourseCount);
         teacherRatings = findViewById(R.id.teacherRatings);
 
-        acceptButton = findViewById(R.id.acceptButton);
-        declineButton = findViewById(R.id.declineButton);
+        Button acceptButton = findViewById(R.id.acceptButton);
+        Button declineButton = findViewById(R.id.declineButton);
 
         acceptButton.setOnClickListener(this);
         declineButton.setOnClickListener(this);
 
         teacherImageView.setClipToOutline(true);
 
+        getCurrentDateTime();
         setupToolbar();
         setupFirebase();
+        setupRecyclerView();
         retrieveData();
     }
 
     private void setupFirebase(){
-        firebaseAuth = FirebaseAuth.getInstance();
         firebaseDatabase = FirebaseDatabase.getInstance();
-
-        user = firebaseAuth.getCurrentUser();
     }
 
     private void retrieveData(){
-        courseName = getIntent().getStringExtra("courseName");
-        key = getIntent().getStringExtra("key");
+        String key = getIntent().getStringExtra("key");
 
-        if (key!=null && courseName!=null){
-            databaseReference = firebaseDatabase.getReference("Course");
-            query = databaseReference.child(key).orderByChild("courseName").startAt(courseName);
+        if (key !=null){
+            databaseReference = firebaseDatabase.getReference("Course").child(key);
 
-            query.addValueEventListener(new ValueEventListener() {
-                @RequiresApi(api = Build.VERSION_CODES.N)
+            databaseReference.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    for (DataSnapshot ds: dataSnapshot.getChildren()){
-                        course = ds.getValue(Course.class);
+                    Course course = dataSnapshot.getValue(Course.class);
 
-                        if (course != null){
-                            Glide.with(getApplicationContext()).load(course.getCourseImageURL()).into(courseDetailImageView);
+                    if (course != null){
+                        Glide.with(getApplicationContext()).load(course.getCourseImageURL()).into(courseDetailImageView);
+                        courseNameET.setText(course.getCourseName());
+                        courseCategoryET.setText(getString(R.string.divider, course.getCourseCategory(), course.getCourseSubcategory()));
+                        courseSummary.setText(course.getCourseSummary());
+                        courseStatus = course.getCourseAcceptance();
+                        teacherUid = course.getTeacherUid();
 
-                            Log.d("url", course.getCourseImageURL());
-
-                            courseNameET.setText(course.getCourseName());
-                            courseCategoryET.setText(course.getCourseCategory() + " - " + course.getCourseSubcategory());
-
-                            courseSummary.setText(course.getCourseSummary());
-
-                            courseStatus = course.getCourseAcceptance();
-
-                            if (courseStatus.equals("pending")){
-                                courseStatusET.setText("Pending");
+                        switch (courseStatus) {
+                            case "pending":
+                                courseStatusET.setText(getString(R.string.pending));
                                 statusLayout.setBackground(getDrawable(R.drawable.pending_course_status));
-                            }else if (courseStatus.equals("accepted")){
+                                break;
+                            case "accepted":
                                 optionsButtonLayout.setVisibility(View.INVISIBLE);
-                                courseStatusET.setText("Accepted");
+                                courseStatusET.setText(getString(R.string.accepted));
                                 statusLayout.setBackground(getDrawable(R.drawable.accepted_course_status));
-                            }else if (courseStatus.equals("declined")){
+                                break;
+                            case "declined":
                                 optionsButtonLayout.setVisibility(View.INVISIBLE);
-                                courseStatusET.setText("Declined");
+                                courseStatusET.setText(getString(R.string.declined));
                                 statusLayout.setBackground(getDrawable(R.drawable.declined_course_status));
-                            }
+                                break;
+                        }
 
-                            HashMap<String, String> date = course.getCourseDate();
+                        try {
+                            courseScheduleDate.setText(getString(R.string.divider, dateFormatter(course.getCourseDate().get("startDate")), dateFormatter(course.getCourseDate().get("endDate"))));
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
 
-                            try {
-                                courseScheduleDate.setText(dateFormatter(date.get("startDate")) + " - " + dateFormatter(date.get("endDate")));
-                            } catch (ParseException e) {
-                                e.printStackTrace();
-                            }
+                        for (HashMap.Entry<String, Boolean> entry : course.getCourseTime().entrySet()) {
+                            timeArrayList.add(entry.getKey());
+                        }
 
-                            for (HashMap.Entry<String, Boolean> entry : course.getCourseTime().entrySet()) {
-                                String key = entry.getKey();
+                        for (HashMap.Entry<String, String> entry : course.getCourseSchedule().entrySet()) {
+                            scheduleArrayList.add(entry.getValue());
+                        }
 
-                                timeArrayList.add(key);
-                            }
+                        Collections.reverse(timeArrayList);
+                        Collections.reverse(scheduleArrayList);
 
-                            for (HashMap.Entry<String, String> entry : course.getCourseSchedule().entrySet()) {
-                                String value = entry.getValue();
+                        StringBuilder time = new StringBuilder();
+                        StringBuilder schedule = new StringBuilder();
 
-                                scheduleArrayList.add(value);
-                            }
-
-                            Collections.reverse(timeArrayList);
-                            Collections.reverse(scheduleArrayList);
-
-                            StringBuilder time = new StringBuilder();
-                            StringBuilder schedule = new StringBuilder();
-
-                            for (int i=0;i<timeArrayList.size();i++) {
-                                if (i == timeArrayList.size()-1){
-                                    time.append(timeArrayList.get(i)).append(".");
-                                }else{
-                                    time.append(timeArrayList.get(i)).append(", ");
-                                }
-                            }
-
-                            for (int i=0;i<scheduleArrayList.size();i++) {
-                                if (i == scheduleArrayList.size()-1){
-                                    schedule.append(scheduleArrayList.get(i));
-                                }else{
-                                    schedule.append(scheduleArrayList.get(i)).append(", ");
-                                }
-                            }
-
-                            courseScheduleTime.setText("Every " + schedule.toString() + " at " + time.toString());
-
-                            for (HashMap.Entry<String, String> entry : course.getCourseBenefit().entrySet()) {
-                                String value = entry.getValue();
-
-                                benefitArrayList.add(value);
-                            }
-
-                            for (HashMap.Entry<String, String> entry : course.getCourseRequirement().entrySet()) {
-                                String value = entry.getValue();
-
-                                requirementArrayList.add(value);
-                            }
-
-                            Collections.reverse(benefitArrayList);
-                            Collections.reverse(requirementArrayList);
-
-                            for (HashMap.Entry<String, Section> entry : course.getCourseCurriculum().entrySet()) {
-                                String key = entry.getKey();
-                                Section value = entry.getValue();
-
-                                sectionArrayList.add(new Section(key, value.getName(), value.getTopics()));
-                                sectionArrayList.sort(Comparator.comparing(Section::getWeek));
-
-                                Log.d("section", sectionArrayList.get(0).getName() + " ");
-
-                                setupRecyclerView();
+                        for (int i=0;i<timeArrayList.size();i++) {
+                            if (i == timeArrayList.size()-1){
+                                time.append(timeArrayList.get(i)).append(".");
+                            }else{
+                                time.append(timeArrayList.get(i)).append(", ");
                             }
                         }
-                    }
-                }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {}
-            });
+                        for (int i=0;i<scheduleArrayList.size();i++) {
+                            if (i == scheduleArrayList.size()-1){
+                                schedule.append(scheduleArrayList.get(i));
+                            }else{
+                                schedule.append(scheduleArrayList.get(i)).append(", ");
+                            }
+                        }
 
-            DatabaseReference databaseReference1 = firebaseDatabase.getReference("Users").child(key);
-            databaseReference1.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    User user = dataSnapshot.getValue(User.class);
+                        courseScheduleTime.setText(getString(R.string.schedule, schedule.toString(), time.toString()));
 
-                    if (user!=null){
-                        teacherName.setText(user.getName());
+                        for (HashMap.Entry<String, String> entry : course.getCourseBenefit().entrySet()) {
+                            benefitArrayList.add(entry.getValue());
+                        }
+
+                        for (HashMap.Entry<String, String> entry : course.getCourseRequirement().entrySet()) {
+                            requirementArrayList.add(entry.getValue());
+                        }
+
+                        Collections.reverse(benefitArrayList);
+                        Collections.reverse(requirementArrayList);
+
+                        for (HashMap.Entry<String, Section> entry : course.getCourseCurriculum().entrySet()) {
+                            sectionArrayList.add(new Section(entry.getKey(), entry.getValue().getName(), entry.getValue().getTopics()));
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+                                sectionArrayList.sort(Comparator.comparing(Section::getWeek));
+                            }
+                        }
+
+                        firebaseDatabase.getReference("Users").child(course.getTeacherUid()).child("name").addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                String name = dataSnapshot.getValue(String.class);
+                                if (name!=null){
+                                    teacherName.setText(name);
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+                                toast(getString(R.string.retrieve_failed));
+                            }
+                        });
+
+                        firebaseDatabase.getReference("Users").child(course.getTeacherUid()).child("teacher").child("rating").addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                Float rating = dataSnapshot.getValue(Float.class);
+                                if (rating!=null){
+                                    teacherRatings.setText(getString(R.string.rating, rating));
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+                                toast(getString(R.string.retrieve_failed));
+                            }
+                        });
+
+                        FirebaseDatabase.getInstance().getReference("Course").orderByChild("teacherUid").equalTo(course.getTeacherUid()).addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                long count = dataSnapshot.getChildrenCount();
+                                teacherCourseCount.setText(getString(R.string.course_count, count));
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+                                toast(getString(R.string.retrieve_failed));
+                            }
+                        });
+
+                        FirebaseStorage.getInstance().getReference("Users").child(course.getTeacherUid()).child("profileimage")
+                                .getDownloadUrl().addOnSuccessListener(uri -> Glide.with(getApplicationContext()).load(uri).into(teacherImageView))
+                                .addOnFailureListener(e -> toast(getString(R.string.retrieve_failed)));
+
+                        sectionAdapter.notifyDataSetChanged();
+                        requirementAdapter.notifyDataSetChanged();
+                        benefitAdapter.notifyDataSetChanged();
                     }
                 }
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                    toast(getString(R.string.retrieve_failed));
                 }
             });
 
-            DatabaseReference databaseReference2 = firebaseDatabase.getReference("Users").child(key).child("teacher");
-            databaseReference2.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    Teacher teacher = dataSnapshot.getValue(Teacher.class);
-
-                    if (teacher!=null){
-                        String ratings = String.valueOf(teacher.getRating());
-
-                        teacherRatings.setText(ratings + " Average Rating");
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                }
-            });
-
-            FirebaseStorage firebaseStorage = FirebaseStorage.getInstance();
-            StorageReference storageReference = firebaseStorage.getReference("Users").child(key).child("profileimage");
-
-            storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                @Override
-                public void onSuccess(Uri uri) {
-                    Glide.with(getApplicationContext()).load(uri).into(teacherImageView);
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Toast.makeText(CourseDetailActivity.this, "failed to load image", Toast.LENGTH_SHORT).show();
-                }
-            });
         }
-    }
-
-    private void deleteCourse(){
-        query.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot ds : dataSnapshot.getChildren()){
-                    ds.getRef().removeValue();
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {}
-        });
     }
 
     private void setupToolbar(){
@@ -326,23 +277,11 @@ public class CourseDetailActivity extends AppCompatActivity implements View.OnCl
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()){
-            case android.R.id.home:
-                finish();
-                return true;
-            case R.id.delete_menu:
-                deleteCourse();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.teacher_course_detail_menu, menu);
-        return true;
+        return super.onOptionsItemSelected(item);
     }
 
     private String dateFormatter(String inputDate) throws ParseException {
@@ -359,24 +298,22 @@ public class CourseDetailActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void setupRecyclerView(){
-        BenefitAdapter benefitAdapter = new BenefitAdapter(benefitArrayList);
-        RequirementAdapter requirementAdapter = new RequirementAdapter(requirementArrayList);
-        SectionAdapter sectionAdapter = new SectionAdapter(sectionArrayList);
-
+        benefitAdapter = new BenefitAdapter(benefitArrayList);
         RecyclerView.LayoutManager benefitLayoutManager = new LinearLayoutManager(getApplicationContext());
-        RecyclerView.LayoutManager requirementLayoutManager = new LinearLayoutManager(getApplicationContext());
-        RecyclerView.LayoutManager sectionLayoutManager = new LinearLayoutManager(getApplicationContext());
-
         benefitRecyclerView.setLayoutManager(benefitLayoutManager);
-        requirementRecyclerView.setLayoutManager(requirementLayoutManager);
-        curriculumRecyclerView.setLayoutManager(sectionLayoutManager);
-
         benefitRecyclerView.setAdapter(benefitAdapter);
-        requirementRecyclerView.setAdapter(requirementAdapter);
-        curriculumRecyclerView.setAdapter(sectionAdapter);
-
         benefitRecyclerView.setHasFixedSize(true);
+
+        requirementAdapter = new RequirementAdapter(requirementArrayList);
+        RecyclerView.LayoutManager requirementLayoutManager = new LinearLayoutManager(getApplicationContext());
+        requirementRecyclerView.setLayoutManager(requirementLayoutManager);
+        requirementRecyclerView.setAdapter(requirementAdapter);
         requirementRecyclerView.setHasFixedSize(true);
+
+        sectionAdapter = new SectionAdapter(sectionArrayList);
+        RecyclerView.LayoutManager sectionLayoutManager = new LinearLayoutManager(getApplicationContext());
+        curriculumRecyclerView.setLayoutManager(sectionLayoutManager);
+        curriculumRecyclerView.setAdapter(sectionAdapter);
         curriculumRecyclerView.setHasFixedSize(true);
     }
 
@@ -393,24 +330,11 @@ public class CourseDetailActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void declineAction(String message){
-        databaseReference.child(key).orderByChild("courseName").startAt(courseName).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot ds : dataSnapshot.getChildren()){
-                    String courseKey = ds.getKey();
-
-                    if (courseKey!=null){
-                        databaseReference.child(key).child(courseKey).child("courseAcceptance").setValue("declined");
-                        databaseReference.child(key).child(courseKey).child("message").setValue(message);
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
+        databaseReference.child("courseAcceptance").setValue("declined");
+        firebaseDatabase.getReference("Notification").child(teacherUid).push()
+                .setValue(new Notification(getString(R.string.course_declined, courseNameET.getText().toString())
+                        , getString(R.string.course_declined_message, courseNameET.getText().toString(), message)
+                        , "teacher", timestamp, dateTime));
     }
 
     private void setAlert(){
@@ -428,28 +352,30 @@ public class CourseDetailActivity extends AppCompatActivity implements View.OnCl
 
         alert.setView(layout);
 
-        alert.setPositiveButton("Yes", (dialog, which) -> declineAction(editText.getText().toString())).setNegativeButton("No", (dialog, which) -> {});
+        alert.setPositiveButton("Yes", (dialog, which) -> declineAction(editText.getText().toString()))
+                .setNegativeButton("No", (dialog, which) -> {});
 
         alert.show();
     }
 
-    private void acceptAction(){
-        databaseReference.child(key).orderByChild("courseName").startAt(courseName).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot ds : dataSnapshot.getChildren()){
-                    String courseKey = ds.getKey();
+    private void toast(String message){
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
 
-                    if (courseKey!=null){
-                        databaseReference.child(key).child(courseKey).child("courseAcceptance").setValue("accepted");
-                    }
-                }
-            }
+    private void acceptAction() {
+        databaseReference.child("courseAcceptance").setValue("accepted");
+        firebaseDatabase.getReference("Notification").child(teacherUid).push()
+                .setValue(new Notification(getString(R.string.course_accepted, courseNameET.getText().toString())
+                        , getString(R.string.course_accepted_message, courseNameET.getText().toString())
+                        , "teacher", timestamp, dateTime));
+    }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
+    private void getCurrentDateTime(){
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d MMM yyyy HH:mm", Locale.ENGLISH);
 
-            }
-        });
+        dateTime = simpleDateFormat.format(new java.util.Date());
+
+        long timestampLong = System.currentTimeMillis()/1000;
+        timestamp = Long.toString(timestampLong);
     }
 }
