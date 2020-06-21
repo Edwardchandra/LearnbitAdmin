@@ -35,7 +35,7 @@ public class TerminateDetailActivity extends AppCompatActivity implements View.O
 
     private ImageView courseImageView;
     private TextView courseName, courseStudent, courseTeacher, studentName, studentReason, studentEmail, dateTime, status, teacherEmail;
-    private String key, courseTime, studentUid, courseUid, teacherUid, courseStudentName, timestamp, date, startTime;
+    private String key, courseTime, studentUid, courseUid, teacherUid, courseStudentName, timestamp, date, startTime, studentKey;
     private long price, teacherBalance;
     private ConstraintLayout buttonLayout;
 
@@ -90,6 +90,15 @@ public class TerminateDetailActivity extends AppCompatActivity implements View.O
                                         startTime = courseDate.getValue();
                                     }
                                 }
+
+                                if (course.getCourseStudent()!=null){
+                                    for (HashMap.Entry<String, String> courseStudent : course.getCourseStudent().entrySet()){
+                                        if (courseStudent.getValue().equals(studentUid)){
+                                            studentKey = courseStudent.getKey();
+                                        }
+                                    }
+                                }
+
                                 price = course.getCoursePrice();
                                 teacherUid = course.getTeacherUid();
                                 courseName.setText(course.getCourseName());
@@ -220,8 +229,12 @@ public class TerminateDetailActivity extends AppCompatActivity implements View.O
                 finish();
                 return true;
             case R.id.cancel_menu:
-                cancelAction();
-                finish();
+                if (status.getText().toString().equalsIgnoreCase("resolved")){
+                    Toast.makeText(this, "Terminate Request has been resolved.", Toast.LENGTH_SHORT).show();
+                }else{
+                    cancelAction();
+                    finish();
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -240,6 +253,17 @@ public class TerminateDetailActivity extends AppCompatActivity implements View.O
     private void halfRefund(){
         FirebaseDatabase.getInstance().getReference("Terminate").child(key).child("status").setValue("resolved");
         FirebaseDatabase.getInstance().getReference("Users").child(studentUid).child("student").child("courses").child(courseUid).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                dataSnapshot.getRef().removeValue();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(TerminateDetailActivity.this, getString(R.string.retrieve_failed), Toast.LENGTH_SHORT).show();
+            }
+        });
+        FirebaseDatabase.getInstance().getReference("Course").child(courseUid).child("courseStudent").child(studentKey).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 dataSnapshot.getRef().removeValue();
@@ -278,6 +302,18 @@ public class TerminateDetailActivity extends AppCompatActivity implements View.O
     private void fullRefund(){
         FirebaseDatabase.getInstance().getReference("Terminate").child(key).child("status").setValue("resolved");
         FirebaseDatabase.getInstance().getReference("Users").child(studentUid).child("student").child("courses").child(courseUid).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                dataSnapshot.getRef().removeValue();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(TerminateDetailActivity.this, getString(R.string.retrieve_failed), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        FirebaseDatabase.getInstance().getReference("Course").child(courseUid).child("courseStudent").child(studentKey).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 dataSnapshot.getRef().removeValue();
