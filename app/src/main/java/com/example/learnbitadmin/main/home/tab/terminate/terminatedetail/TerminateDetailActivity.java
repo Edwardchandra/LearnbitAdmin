@@ -131,7 +131,13 @@ public class TerminateDetailActivity extends AppCompatActivity implements View.O
                                         Toast.makeText(TerminateDetailActivity.this, getString(R.string.retrieve_failed), Toast.LENGTH_SHORT).show();
                                     }
                                 });
-                                courseStudent.setText(getString(R.string.students, course.getCourseStudent().size()));
+
+                                if (course.getCourseStudent()!=null){
+                                    courseStudent.setText(getString(R.string.students, course.getCourseStudent().size()));
+                                }else{
+                                    courseStudent.setText(getString(R.string.students, 0));
+                                }
+
                                 FirebaseDatabase.getInstance().getReference("Users").child(course.getTeacherUid()).child("email").addValueEventListener(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
